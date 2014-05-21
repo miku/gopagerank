@@ -106,19 +106,24 @@ func main() {
         os.Exit(1)
     }
 
-    handle, err := os.Open(flag.Args()[0])
-    if err != nil {
-        fmt.Printf("%s\n", err)
-        os.Exit(1)
+    fileName := flag.Args()[0]
+
+    var in *os.File
+    if fileName == "-" {
+      in = os.Stdin
+    } else {
+      in, err := os.Open(fileName)
+      if err != nil {
+          fmt.Printf("%s\n", err)
+          os.Exit(1)
+      }
+      defer func() {
+          if err := in.Close(); err != nil {
+              panic(err)
+          }
+      }()
     }
-
-    defer func() {
-        if err := handle.Close(); err != nil {
-            panic(err)
-        }
-    }()
-
-    scanner := bufio.NewScanner(handle)
+    scanner := bufio.NewScanner(in)
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
     }
